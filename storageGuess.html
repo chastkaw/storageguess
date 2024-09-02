@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QommStrat StorageGuess</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #004080;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        header img {
+            width: 50px;
+            vertical-align: middle;
+        }
+        header h1 {
+            display: inline;
+            margin-left: 10px;
+            font-size: 2em;
+        }
+        main {
+            padding: 20px;
+        }
+        form {
+            background-color: #e6f2ff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        form label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        form button {
+            background-color: #ce0060;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #a8004d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #004080;
+            color: white;
+        }
+        #downloadCsv {
+            background-color: #004080;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            text-align: center;
+        }
+        #downloadCsv:hover {
+            background-color: #003366;
+        }
+        footer {
+            background-color: #004080;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://urldefense.com/v3/__https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Natural_gas_icon.svg/1024px-Natural_gas_icon.svg.png__;!!Nrz4EcbiUYLJF9sf!9lc5VLeM-uYFITOWzSXMGsf5UiUjqTG715UseWXVzPKztcOk53npZjOldORC9mPMtRTj7elX_QB6yw$ " alt="Gas Icon">
+        <h1>QommStrat StorageGuess</h1>
+    </header>
+    <main>
+        <form id="guessForm">
+            <label for="name">Name (max 50 chars):</label>
+            <input type="text" id="name" name="name" maxlength="50" required>
+            <label for="storageGuess">Storage Guess (numerical):</label>
+            <input type="number" id="storageGuess" name="storageGuess" required>
+            <button type="submit">Submit</button>
+        </form>
+        <button id="downloadCsv">Download CSV</button>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>Nat</th>
+                    <th>Justin</th>
+                    <th>Shawn</th>
+                    <th>Natalia</th>
+                    <th>Will</th>
+                    <th>Ligong</th>
+                    <th>Suzanne</th>
+                    <th>Aaron</th>
+                    <th>Brad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Results will be appended here -->
+            </tbody>
+        </table>
+    </main>
+    <footer>
+        &copy; 2023 QommStrat StorageGuess - Natural Gas Storage Solutions
+    </footer>
+    <script>
+        const predefinedNames = ['Nat', 'Justin', 'Shawn', 'Natalia', 'Will', 'Ligong', 'Suzanne', 'Aaron', 'Brad'];
+
+        function saveData(name, storageGuess) {
+            const data = JSON.parse(localStorage.getItem('guesses')) || {};
+            if (!data[name]) {
+                data[name] = [];
+            }
+            data[name].push(storageGuess);
+            localStorage.setItem('guesses', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const data = JSON.parse(localStorage.getItem('guesses')) || {};
+            const table = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+            table.innerHTML = '';
+
+            const maxRows = Math.max(...Object.values(data).map(arr => arr.length), 0);
+            for (let i = 0; i < maxRows; i++) {
+                const newRow = table.insertRow();
+                predefinedNames.forEach(name => {
+                    const cell = newRow.insertCell();
+                    cell.textContent = data[name] && data[name][i] !== undefined ? data[name][i] : '';
+                });
+            }
+        }
+
+        function downloadCSV() {
+            const data = JSON.parse(localStorage.getItem('guesses')) || {};
+            let csvContent = "data:text/csv;charset=utf-8," + predefinedNames.join(',') + "\n";
+            const maxRows = Math.max(...Object.values(data).map(arr => arr.length), 0);
+            for (let i = 0; i < maxRows; i++) {
+                const row = predefinedNames.map(name => data[name] && data[name][i] !== undefined ? data[name][i] : '').join(',');
+                csvContent += row + "\n";
+            }
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "storage_guesses.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        document.getElementById('guessForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const storageGuess = document.getElementById('storageGuess').value;
+            saveData(name, storageGuess);
+            loadData();
+            document.getElementById('guessForm').reset();
+        });
+
+        document.getElementById('downloadCsv').addEventListener('click', downloadCSV);
+
+        // Clear all guess data each time a new session is initiated
+        localStorage.removeItem('guesses');
+        loadData();
+    </script>
+</body>
+</html>
