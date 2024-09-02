@@ -4,202 +4,196 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QommStrat StorageGuess</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f0f4f8;
         }
-        header {
-            background-color: #004080;
-            color: white;
-            padding: 20px;
+        h1 {
+            color: #004080;
             text-align: center;
         }
         .gas-icon {
-            font-size: 40px;
+            font-size: 1.5em;
             vertical-align: middle;
             margin-right: 10px;
         }
-        form, button {
+        form, .button-group {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        select, input, button {
+            margin: 5px;
+            padding: 8px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #004080;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #00305f;
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 12px;
             text-align: left;
         }
-        .hidden {
-            display: none;
+        th {
+            background-color: #004080;
+            color: white;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 300px;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
+        .winner {
             font-weight: bold;
-            cursor: pointer;
+        }
+        .confetti {
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <span class="gas-icon">⛽</span>
-        <h1>QommStrat StorageGuess</h1>
-    </header>
-    <main>
-        <form id="guessForm">
-            <label for="name">Name:</label>
-            <input type="text" id="name" required>
-            <label for="storageGuess">Storage Guess:</label>
-            <input type="number" id="storageGuess" required>
-            <button type="submit">Submit Guess</button>
-        </form>
-        <button id="actualButton">Submit Actual Value</button>
+    <h1><span class="gas-icon">⛽</span>QommStrat StorageGuess</h1>
+    <form id="guessForm">
+        <select id="name" required>
+            <option value="">Select Name</option>
+            <option value="Nat">Nat</option>
+            <option value="Justin">Justin</option>
+            <option value="Shawn">Shawn</option>
+            <option value="Natalia">Natalia</option>
+            <option value="Will">Will</option>
+            <option value="Ligong">Ligong</option>
+            <option value="Suzanne">Suzanne</option>
+            <option value="Aaron">Aaron</option>
+            <option value="Brad">Brad</option>
+        </select>
+        <input type="number" id="storageGuess" placeholder="Storage Guess" required>
+        <button type="submit">Submit Guess</button>
+    </form>
+    <form id="actualForm">
+        <input type="number" id="actual" placeholder="Actual Value" required>
+        <input type="password" id="actualPassword" placeholder="Password" required>
+        <button type="submit">Submit Actual</button>
+    </form>
+    <div class="button-group">
         <button id="downloadCsv">Download CSV</button>
-        <button id="resetButton">Reset All Submissions</button>
-        <table id="resultsTable">
-            <thead>
-                <tr>
-                    <th>Nat</th>
-                    <th>Justin</th>
-                    <th>Shawn</th>
-                    <th>Natalia</th>
-                    <th>Will</th>
-                    <th>Ligong</th>
-                    <th>Suzanne</th>
-                    <th>Aaron</th>
-                    <th>Brad</th>
-                    <th>ACTUAL</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </main>
-
-    <div id="actualModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Submit Actual Value</h2>
-            <form id="actualPasswordForm">
-                <label for="actualPassword">Password:</label>
-                <input type="password" id="actualPassword" required>
-                <button type="submit">Verify Password</button>
-            </form>
-            <form id="actualForm" class="hidden">
-                <label for="actual">Actual Value:</label>
-                <input type="number" id="actual" required>
-                <button type="submit">Submit Actual</button>
-            </form>
-        </div>
+        <button id="clearValues">Clear Values</button>
     </div>
-
-    <div id="resetModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Enter Password to Reset</h2>
-            <form id="resetPasswordForm">
-                <label for="resetPassword">Password:</label>
-                <input type="password" id="resetPassword" required>
-                <button type="submit">Reset All Submissions</button>
-            </form>
-        </div>
-    </div>
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>Nat</th>
+                <th>Justin</th>
+                <th>Shawn</th>
+                <th>Natalia</th>
+                <th>Will</th>
+                <th>Ligong</th>
+                <th>Suzanne</th>
+                <th>Aaron</th>
+                <th>Brad</th>
+                <th>ACTUAL</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
     <script>
-        const predefinedNames = ['Nat', 'Justin', 'Shawn', 'Natalia', 'Will', 'Ligong', 'Suzanne', 'Aaron', 'Brad'];
-        const correctPassword = 'shaleyvibes';
+    // Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDPWKbLjsvGpTq7vl6EH5zo1xsijBR0hng",
+  authDomain: "storageguess.firebaseapp.com",
+  databaseURL: "https://storageguess-default-rtdb.firebaseio.com",
+  projectId: "storageguess",
+  storageBucket: "storageguess.appspot.com",
+  messagingSenderId: "1080845986876",
+  appId: "1:1080845986876:web:eecf4a1b3f7a63fe376739",
+  measurementId: "G-BGES4F1P2L"
+};
 
-        function getWeekKey() {
-            const now = new Date();
-            const startOfWeek = new Date(now);
-            startOfWeek.setUTCDate(now.getUTCDate() - now.getUTCDay() + 3);
-            startOfWeek.setUTCHours(16, 0, 0, 0);
-            if (now < startOfWeek) {
-                startOfWeek.setUTCDate(startOfWeek.getUTCDate() - 7);
-            }
-            return startOfWeek.toISOString().split('T')[0];
-        }
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-        function saveData(name, storageGuess) {
-            let data = JSON.parse(localStorage.getItem('guesses')) || {};
-            const weekKey = getWeekKey();
-            if (!data[weekKey]) data[weekKey] = {};
-            if (!data[weekKey][name]) data[weekKey][name] = [];
-            data[weekKey][name].push(storageGuess);
-            localStorage.setItem('guesses', JSON.stringify(data));
-        }
+    const predefinedNames = ['Nat', 'Justin', 'Shawn', 'Natalia', 'Will', 'Ligong', 'Suzanne', 'Aaron', 'Brad'];
+    const correctPassword = 'shaleyvibes'; // Set your desired password here
 
-        function saveActual(actual) {
-            let data = JSON.parse(localStorage.getItem('guesses')) || {};
-            const weekKey = getWeekKey();
-            if (!data[weekKey]) data[weekKey] = {};
-            data[weekKey]['ACTUAL'] = actual;
-            localStorage.setItem('guesses', JSON.stringify(data));
-        }
+    function saveData(name, storageGuess) {
+        database.ref('guesses/' + name).push(storageGuess);
+    }
 
-        function loadData() {
-            const data = JSON.parse(localStorage.getItem('guesses')) || {};
-            const weekKey = getWeekKey();
-            const weekData = data[weekKey] || {};
+    function saveActual(actual) {
+        database.ref('guesses/ACTUAL').set(actual);
+    }
+
+    function loadData() {
+        database.ref('guesses').once('value', (snapshot) => {
+            const data = snapshot.val() || {};
             const table = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
             table.innerHTML = '';
 
-            const maxRows = Math.max(...predefinedNames.map(name => (weekData[name] || []).length), weekData['ACTUAL'] ? 1 : 0);
-            
+            const maxRows = Math.max(...predefinedNames.map(name => 
+                data[name] ? Object.keys(data[name]).length : 0
+            ), data['ACTUAL'] ? 1 : 0);
+
             for (let i = 0; i < maxRows; i++) {
                 const newRow = table.insertRow();
                 predefinedNames.forEach(name => {
                     const cell = newRow.insertCell();
-                    const value = weekData[name] && weekData[name][i] !== undefined ? weekData[name][i] : '';
+                    const nameData = data[name] || {};
+                    const values = Object.values(nameData);
+                    const value = values[i] || '';
                     cell.textContent = value;
-                    if (weekData['ACTUAL'] !== undefined) {
-                        const diff = Math.abs(parseFloat(value) - parseFloat(weekData['ACTUAL']));
-                        if (diff === 0 || diff === Math.min(...predefinedNames.map(n => Math.abs(parseFloat((weekData[n] && weekData[n][i]) || 0) - parseFloat(weekData['ACTUAL']))))) {
+                    if (data['ACTUAL'] !== undefined && value !== '') {
+                        const diff = Math.abs(parseFloat(value) - parseFloat(data['ACTUAL']));
+                        const minDiff = Math.min(...predefinedNames.map(n => {
+                            const nValues = Object.values(data[n] || {});
+                            return nValues[i] ? Math.abs(parseFloat(nValues[i]) - parseFloat(data['ACTUAL'])) : Infinity;
+                        }));
+                        if (diff === minDiff) {
                             cell.innerHTML = `<span class="winner">${value}<span class="confetti">🎉</span></span>`;
                         }
                     }
                 });
                 const actualCell = newRow.insertCell();
-                actualCell.textContent = i === 0 ? (weekData['ACTUAL'] || '') : '';
+                actualCell.textContent = i === 0 ? (data['ACTUAL'] || '') : '';
             }
-        }
+        });
+    }
 
-        function downloadCSV() {
-            const data = JSON.parse(localStorage.getItem('guesses')) || {};
-            const weekKey = getWeekKey();
-            const weekData = data[weekKey] || {};
+    function downloadCSV() {
+        database.ref('guesses').once('value', (snapshot) => {
+            const data = snapshot.val() || {};
             let csvContent = "data:text/csv;charset=utf-8," + [...predefinedNames, 'ACTUAL'].join(',') + "\n";
-            
-            const maxRows = Math.max(...predefinedNames.map(name => (weekData[name] || []).length), weekData['ACTUAL'] ? 1 : 0);
-            
+            const maxRows = Math.max(...predefinedNames.map(name => 
+                data[name] ? Object.keys(data[name]).length : 0
+            ), data['ACTUAL'] ? 1 : 0);
             for (let i = 0; i < maxRows; i++) {
-                const row = predefinedNames.map(name => (weekData[name] && weekData[name][i]) || '').join(',');
-                csvContent += row + ',' + (i === 0 ? (weekData['ACTUAL'] || '') : '') + "\n";
+                const row = predefinedNames.map(name => {
+                    const nameData = data[name] || {};
+                    const values = Object.values(nameData);
+                    return values[i] || '';
+                }).join(',');
+                csvContent += row + ',' + (i === 0 ? (data['ACTUAL'] || '') : '') + "\n";
             }
-            
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -207,99 +201,49 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
-
-        function resetAllSubmissions() {
-            localStorage.removeItem('guesses');
-            loadData();
-            alert('All submissions have been reset.');
-        }
-
-        document.getElementById('guessForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const name = document.getElementById('name').value;
-            const storageGuess = document.getElementById('storageGuess').value;
-            saveData(name, storageGuess);
-            loadData();
-            this.reset();
         });
+    }
 
-        document.getElementById('actualPasswordForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const password = document.getElementById('actualPassword').value;
-            if (password === correctPassword) {
-                document.getElementById('actualForm').classList.remove('hidden');
-                this.classList.add('hidden');
-            } else {
-                alert('Incorrect password. Please try again.');
-            }
-            this.reset();
-        });
-
-        document.getElementById('actualForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const actual = document.getElementById('actual').value;
-            saveActual(actual);
-            loadData();
-            this.reset();
-            document.getElementById('actualModal').style.display = 'none';
-        });
-
-        document.getElementById('downloadCsv').addEventListener('click', downloadCSV);
-
-        const actualModal = document.getElementById('actualModal');
-        const actualButton = document.getElementById('actualButton');
-        const resetModal = document.getElementById('resetModal');
-        const resetButton = document.getElementById('resetButton');
-        const closeButtons = document.getElementsByClassName('close');
-
-        actualButton.onclick = function() {
-            actualModal.style.display = 'block';
-        }
-
-        resetButton.onclick = function() {
-            resetModal.style.display = 'block';
-        }
-
-        Array.from(closeButtons).forEach(button => {
-            button.onclick = function() {
-                actualModal.style.display = 'none';
-                resetModal.style.display = 'none';
-            }
-        });
-
-        window.onclick = function(event) {
-            if (event.target == actualModal) {
-                actualModal.style.display = 'none';
-            }
-            if (event.target == resetModal) {
-                resetModal.style.display = 'none';
-            }
-        }
-
-        document.getElementById('resetPasswordForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const resetPassword = document.getElementById('resetPassword').value;
-            if (resetPassword === correctPassword) {
-                resetAllSubmissions();
-                resetModal.style.display = 'none';
-            } else {
-                alert('Incorrect password. Reset cancelled.');
-            }
-            this.reset();
-        });
-
-        loadData();
-
-        setInterval(() => {
-            const now = new Date();
-            const resetTime = new Date(now);
-            resetTime.setUTCDate(resetTime.getUTCDate() - resetTime.getUTCDay() + 3);
-            resetTime.setUTCHours(16, 0, 0, 0);
-            if (now >= resetTime && now < new Date(resetTime.getTime() + 60000)) {
+    function clearValues() {
+        const password = prompt("Enter password to clear values:");
+        if (password === correctPassword) {
+            database.ref('guesses').remove().then(() => {
                 loadData();
-            }
-        }, 60000);
+                alert('All values have been cleared.');
+            }).catch((error) => {
+                console.error('Error clearing values:', error);
+                alert('Error clearing values. Please try again.');
+            });
+        } else {
+            alert('Incorrect password. Values not cleared.');
+        }
+    }
+
+    document.getElementById('guessForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const name = document.getElementById('name').value;
+        const storageGuess = document.getElementById('storageGuess').value;
+        saveData(name, storageGuess);
+        this.reset();
+    });
+
+    document.getElementById('actualForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const actual = document.getElementById('actual').value;
+        const password = document.getElementById('actualPassword').value;
+        if (password === correctPassword) {
+            saveActual(actual);
+            this.reset();
+        } else {
+            alert('Incorrect password. Actual value not submitted.');
+        }
+    });
+
+    document.getElementById('downloadCsv').addEventListener('click', downloadCSV);
+    document.getElementById('clearValues').addEventListener('click', clearValues);
+
+    loadData();
+    database.ref('guesses').on('value', loadData);
     </script>
 </body>
 </html>
